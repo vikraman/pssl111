@@ -1,0 +1,57 @@
+name: Build website and deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          submodules: recursive
+      - name: Setup Typst
+        uses: typst-community/setup-typst@v4
+        with:
+          typst-version: ^0.13.1
+      - name: Check `typst`
+        run: |
+          echo $GITHUB_PATH
+          typst --version
+      - name: Build with typst
+        run: |
+          make
+      - name: Fix permissions
+        run: |
+          chmod -c -R +rX "./out/" | while read line; do
+            echo "::warning title=Invalid file permissions automatically fixed::$line"
+          done
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: output
+          path: ./out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: output
+          path: ./out
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4
+        if: github.ref == 'refs/heads/main'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./out
