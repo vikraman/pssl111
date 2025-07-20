@@ -1,34 +1,78 @@
+#let page-head(
+  title,
+  css: (),
+) = {
+  html.elem("head", {
+    html.elem("meta", attrs: (charset: "utf-8"))
+    html.elem("meta", attrs: (
+      name: "viewport",
+      content: "width=device-width, initial-scale=1",
+    ))
+    html.elem("meta", attrs: (
+      name: "color-scheme",
+      content: "light dark",
+    ))
+    html.elem("link", attrs: (
+      rel: "stylesheet",
+      href: "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.fluid.classless.red.min.css",
+    ))
+    for ss in css {
+      html.elem("link", attrs: (rel: "stylesheet", href: ss))
+    }
+    html.elem("title", title)
+  })
+}
+
+#let page-nav(
+  site,
+  pages,
+  current,
+) = {
+  html.elem("nav", {
+    html.elem("ul", {
+      html.elem("li", {
+        html.elem("strong", {
+          html.elem("a", attrs: (href: pages.index.href), site)
+        })
+      })
+      for (filename, keys) in pages {
+        if filename != current {
+          html.elem("li", {
+            html.elem("a", attrs: (href: keys.href), keys.title)
+          })
+        } else {
+          html.elem("li", {
+            html.elem("button", attrs: (class: "secondary"), keys.title)
+          })
+        }
+      }
+    })
+  })
+}
+
 #let page(
-  site: "PSSL 111",
-  name: none,
+  site: "Untitled",
+  pages: (),
+  filename: none,
   css: (),
   content,
 ) = {
+  if filename == none {
+    filename = sys.inputs.at("filename")
+  }
+
+  let name = pages.at(filename).title
   let title = site + " - " + name
   set document(title: title)
 
   html.elem("html", attrs: (lang: "en"), {
-    html.elem("head", {
-      html.elem("meta", attrs: (charset: "utf-8"))
-      html.elem("meta", attrs: (
-        name: "viewport",
-        content: "width=device-width, initial-scale=1",
-      ))
-      html.elem("meta", attrs: (
-        name: "color-scheme",
-        content: "light dark",
-      ))
-      html.elem("link", attrs: (
-        rel: "stylesheet",
-        href: "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.fluid.classless.red.min.css",
-      ))
-      for ss in css {
-        html.elem("link", attrs: (rel: "stylesheet", href: ss))
-      }
-      html.elem("title", title)
-    })
+    page-head(title, css: css)
     html.elem("body", {
+      html.elem("header", {
+        page-nav(site, pages, filename)
+      })
       html.elem("main", content)
+      html.elem("footer")
     })
   })
 }

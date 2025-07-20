@@ -1,6 +1,10 @@
 #import "../lib/prelude.typ": *
+#import "_site.typ": *
 
-#show: page.with(name: "Home")
+#show: page.with(
+  pages: pages,
+  site: site,
+)
 
 The 111th Peripatetic Seminar on Sheaves and Logic (PSSL 111) will take place on Sep 4th and Sep 5th 2025 in Bologna, Italy.
 
